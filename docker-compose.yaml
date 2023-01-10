@@ -12,9 +12,9 @@ services:
     ports:
       - "5432"
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
 
   migrate:
     container_name: migrate-tool
@@ -22,23 +22,23 @@ services:
     networks:
       new:
     volumes:
-      - ./migrations:/migrations
-    command: ["-path", "/migrations", "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?sslmode=disable", "up"]
-    links:
-      - db
+      - ./migration:/migration
+    command: ["-path", "/migration", "-database",  "postgres://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}?sslmode=disable", "up"]
     depends_on:
       - db
 
   rest:
     container_name: notes-rest-api
-    build: .
-    command: ./main
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./docker/rest/Dockerfile
     ports:
-      - "8080:8080"
-    links:
-      - db
+      - "8080:${APP_PORT}"
     depends_on:
       - db
+    env_file:
+      - .env
 
 networks:
   new:

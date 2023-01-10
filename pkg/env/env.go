@@ -1,30 +1,27 @@
 package env
 
 import (
-	"sync"
+	"os"
 
-	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 )
 
 var config *EnvConfig
-var once sync.Once
 
 type EnvConfig struct {
 	AppConfig struct {
-		Port      string `env:"APP_PORT" env-default:"8080"`
-		Salt      string `env:"APP_SALT" env-required:"true"`
-		SignInKey string `env:"APP_SIGNINKEY" env-required:"true"`
+		Port      string
+		Salt      string
+		SignInKey string
 	}
 
 	DbConfig struct {
-		Host     string `env:"PG_HOST" env-required:"true"`
-		Port     string `env:"PG_PORT" env-required:"true"`
-		Username string `env:"PG_USERNAME" env-required:"true"`
-		DBName   string `env:"DB_NAME" env-required:"true"`
-		SSLMode  string `env:"SSL_MODE" env-default:"false"`
-		Password string `env:"PG_PASSWORD" env-required:"true"`
+		Host     string
+		Port     string
+		Username string
+		DBName   string
+		SSLMode  string
+		Password string
 	}
 }
 
@@ -32,17 +29,33 @@ func InitEnv() error {
 	return godotenv.Load()
 }
 
-func LoadEnvConfig() error {
-	var err error
-	once.Do(func() {
-		logrus.Print("gather config")
-
-		if err = cleanenv.ReadEnv(config); err != nil {
-			return
-		}
-	})
-
-	return err
+func SetEnvConfig() {
+	config = &EnvConfig{
+		AppConfig: struct {
+			Port      string
+			Salt      string
+			SignInKey string
+		}{
+			Port:      os.Getenv("APP_HOST"),
+			Salt:      os.Getenv("APP_SALT"),
+			SignInKey: os.Getenv("APP_SIGNINKEY"),
+		},
+		DbConfig: struct {
+			Host     string
+			Port     string
+			Username string
+			DBName   string
+			SSLMode  string
+			Password string
+		}{
+			Host:     os.Getenv("DB_HOST"),
+			Port:     os.Getenv("DB_PORT"),
+			Username: os.Getenv("DB_USER"),
+			DBName:   os.Getenv("DB_NAME"),
+			SSLMode:  os.Getenv("SSL_MODE"),
+			Password: os.Getenv("DB_PASSWORD"),
+		},
+	}
 }
 
 func GetEnvConfig() *EnvConfig {

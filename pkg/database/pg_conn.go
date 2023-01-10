@@ -6,6 +6,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var db *sqlx.DB
+
 type PostgresConfig struct {
 	Host     string
 	Port     string
@@ -15,16 +17,22 @@ type PostgresConfig struct {
 	SSLMode  string
 }
 
-func NewPostgresDatabase(cfg PostgresConfig) (*sqlx.DB, error) {
-	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+func SetPostgresDatabase(cfg PostgresConfig) error {
+	var err error
+
+	db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return err
 	}
 
-	return db, nil
+	return nil
+}
+
+func GetDatabase() *sqlx.DB {
+	return db
 }
